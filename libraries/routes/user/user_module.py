@@ -18,10 +18,10 @@ from libraries.routes.user.response_lib import *
 #the RES code will return an error.
 #------------------------------------------------------------------- 
 
-user_router = APIRouter(tags=["user.endpoint"])
+user_router = APIRouter(tags=["User Endpoint"])
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login")
 
-@user_router.post('/login', name='', responses=loginResponse)
+@user_router.post('/login', name='Login', responses=loginResponse)
 async def userRouterLogin(form_data: OAuth2PasswordRequestForm = Depends()):
     try:
         returnToken = json.loads(DBFunction(functionName='new_session',
@@ -35,13 +35,13 @@ async def userRouterLogin(form_data: OAuth2PasswordRequestForm = Depends()):
                "CVP":"None",
                "RES":"ERR"}
     
-@user_router.get('/logout', name='', responses=logoutResponse)
+@user_router.get('/logout', name='Logout', responses=logoutResponse)
 async def userRouterLogout():
         return{"UT":"None",
                "CVP":"None",
                "RES":"RES"}
 
-@user_router.get('/register', name='', responses=registerResponse)
+@user_router.get('/register', name='Register', responses=registerResponse)
 async def userRouterRegister(username: str, password: str, userPhrase: str, tos_acknowledgement: bool = False):
     if(tos_acknowledgement == True):
         try:
@@ -60,9 +60,10 @@ async def userRouterRegister(username: str, password: str, userPhrase: str, tos_
                "CVP":"None",
                "RES":"TOS"}
 
-@user_router.get('/test.users', include_in_schema=False)
+@user_router.get('/test.users', name='User Debug Endpoint', tags=['Diagnostics'])
 async def userRouterLogout():
-    return({'Module':'Active'})
+    return({'Module':'Active',
+            'Module Version':'2.0.0'})
 
 
 #---------------------------------

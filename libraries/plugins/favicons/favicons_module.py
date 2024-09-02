@@ -12,10 +12,11 @@ icon_router = APIRouter()
 def favicon():
     return FileResponse('./libraries/plugins/favicons/favicon.png')
 
-@icon_router.get('/test.favicon', include_in_schema=False)
+@icon_router.get('/test.favicon', name='Favicon Debug Endpoint', tags=['Diagnostics'])
 def faviconTest():
     return({"Module":"Active",
-            "favicon_image":"./libraries/plugins/favicons/favicon.png"})
+            "favicon_image":"./libraries/plugins/favicons/favicon.png",
+            "Addon Version":"2.0.0"})
 
 
 #---------------------------------
