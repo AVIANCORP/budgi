@@ -19,10 +19,13 @@ loginArray = {'host':dbConfig.get('database','ip'),
 database_router = APIRouter()
 
 @database_router.get('/test.db', include_in_schema=False)
-def userRouterLogout():
-    return({'Config':loginArray,
+def testDBInstance():
+    censoredLoginArray = loginArray
+    
+    return({'Config':str(censoredLoginArray),
             'Instance Raw': str(StartDBInstance(creds=loginArray)),
-            'Module':'Active'})
+            'Module':'Active',
+            'Module Version':'1.3.0'})
 
 def StartDBInstance(creds=(None,None,None,None)):
     if creds:
@@ -76,4 +79,4 @@ def mysql_runonce():
     return("app.include_router(database_router)")
 
 def DBVersion():
-    return('MySQL: 808 Based API: 1.3')
+    return('</808/> Based API: 1.3')

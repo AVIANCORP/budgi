@@ -10,29 +10,36 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 #from fastapi.openapi.docs import get_swagger_ui_html, get_redoc_html
 from typing import Union
-import configparser, uvicorn, os, sys, importlib
+import configparser, uvicorn, os, sys, importlib, json
+from colorama import Fore, Back, Style, init
+
+if(os.name == 'nt'):
+   from colorama import just_fix_windows_console
+   just_fix_windows_console()
+else:
+   from colorama import init
+init()
 
 def library_folder_inject(folder):
    for route_listing in os.listdir(str(folder)):
       try:
          for filename_listing in os.listdir(f"{str(folder)}/{route_listing}"):
+            currentLibrary = f"{str(folder)}{route_listing}.{filename_listing}".replace('/','.').replace('.py','')
             if '_module.py' in filename_listing:
-               currentLibrary = f"{str(folder)}{route_listing}.{filename_listing}".replace('/','.').replace('.py','')
+               #print(filename_listing.split('.')[0])
                exec(f"from {currentLibrary} import *")
-               #exec(f"moduleObject = __import__({currentLibrary})")
-               #exec(f"globals()[{currentLibrary}] = moduleObject")
                exec(f"exec({filename_listing.split('_')[0]}_runonce())")
-               print(f"Loaded {filename_listing.split('_')[0]} library")
+               print(f"{Fore.GREEN }[ OK ]{Style.RESET_ALL} Loaded {filename_listing.split('_')[0]} library")
       except Exception as e:
-         print(f"Issue loading library: {currentLibrary}\n[EXCEPTION]\n{e}\n[/EXCEPTION]")
+         print(f"{Fore.RED }[FAIL]{Style.RESET_ALL} Issue loading library: {currentLibrary}\n{Fore.RED }[EXCEPTION]{Style.RESET_ALL}\n{e}\n{Fore.RED }[/EXCEPTION]{Style.RESET_ALL}")
 
 def library_folder_import(folder):
     moduleList = []
     for route_listing in os.listdir(str(folder)):
         try:
             for filename_listing in os.listdir(f"{str(folder)}/{route_listing}"):
+                currentLibrary = f"{str(folder)}{route_listing}.{filename_listing}".replace('/','.').replace('.py','')
                 if '_module.py' in filename_listing:
-                    currentLibrary = f"{str(folder)}{route_listing}.{filename_listing}".replace('/','.').replace('.py','')
                     importlib.import_module(currentLibrary)
                     moduleList.append(currentLibrary)
                     print(f"Loaded {filename_listing.split('_')[0]} library")
@@ -42,13 +49,14 @@ def library_folder_import(folder):
 
 # Load configuration file
 config = configparser.ConfigParser()
-config.read('config.ini')
+config.read('config.ini', encoding="utf8")
 
 # Load configuration settings
 app = FastAPI(title=str(config.get('devConfig','title')),
               description=config.get('devConfig','description'),
               version=config.get('devConfig','version'),
-              terms_of_service=config.get('devConfig','terms_of_use'))
+              terms_of_service=config.get('devConfig','terms_of_use'),
+              servers=json.loads(config.get('devConfig','url_list')))
 
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 oauth2_schema = OAuth2PasswordBearer(tokenUrl="authorize")
@@ -58,15 +66,12 @@ oauth2_schema = OAuth2PasswordBearer(tokenUrl="authorize")
 #but I honestly don't care at this point. It works. That's all that matters. If you don't like it, then fucking fix it
 #because I sure don't know how.
 
-
 #temporary explicit import of mysql is needed since the injection method does not work for this.
 from libraries.database.mysql.mysql_module import *
 
 library_folder_inject('libraries/routes/')
 library_folder_inject('libraries/plugins/')
 library_folder_inject('libraries/database/')
-
-
 
 #Generate a list of debug points from imported libraries
 
@@ -138,5 +143,5 @@ def default():
 if __name__ == "__main__":
    uvicorn.run("main:app", 
                port=int(config.get('config','port')), 
-               reload=bool(config.get('config','auto_reload')),
-               host=bool(config.get('config','host')))
+               reload=config.get('config','auto_reload'),
+               host=config.get('config','host'))

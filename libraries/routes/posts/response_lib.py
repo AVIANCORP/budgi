@@ -50,6 +50,8 @@ publishResponse = {
     }
 }
 
+publishDescription = "The publish endpoint requires a user token with atleast a standing level of 2 and content to save. An index variable is required to append the post as a comment under a Parent post."
+
 uploadResponse = {
     200:{'description':'Uploaded',
          'content':{"application/json":
@@ -114,6 +116,8 @@ uploadResponse = {
     }
 }
 
+uploadDescription = "NOT IMPLEMENTED - NO CLOUD ZERO-TRUST PROVIDER"
+
 deleteResponse = {
     200:{'description':'Successful removal',
          'content':{"application/json":
@@ -150,3 +154,5 @@ deleteResponse = {
             }
         },
     }
+
+deleteDescription = "This endpoint is used to delete standard posts. If you have a post and the user_token assigned to it you are able to delete it."

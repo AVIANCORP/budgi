@@ -34,14 +34,29 @@ async def userRouterLogin(form_data: OAuth2PasswordRequestForm = Depends()):
         return{"UT":"None",
                "CVP":"None",
                "RES":"ERR"}
+
+@user_router.post('/basic_login', name='Login (Basic Login)', responses=loginResponse)
+async def userRouterLogin(username: str, password: str):
+    try:
+        returnToken = json.loads(DBFunction(functionName='new_session',
+                                            arguments=[username, password], 
+                                            instance=StartDBInstance(creds=loginArray))[0])
+        return{"UT":returnToken['token'],
+               "CVP":returnToken['phrase'],
+               "RES":"OK"}
+    except:
+        return{"UT":"None",
+               "CVP":"None",
+               "RES":"ERR"}
     
+
 @user_router.get('/logout', name='Logout', responses=logoutResponse)
 async def userRouterLogout():
         return{"UT":"None",
                "CVP":"None",
                "RES":"RES"}
 
-@user_router.get('/register', name='Register', responses=registerResponse)
+@user_router.post('/register', name='Register', responses=registerResponse)
 async def userRouterRegister(username: str, password: str, userPhrase: str, tos_acknowledgement: bool = False):
     if(tos_acknowledgement == True):
         try:
@@ -59,6 +74,36 @@ async def userRouterRegister(username: str, password: str, userPhrase: str, tos_
         return{"UT":"None",
                "CVP":"None",
                "RES":"TOS"}
+#b'{"detail":[{"type":"int_parsing","loc":["query","index"],"msg":"Input should be a valid integer, unable to parse string as an integer","input":""},{"type":"missing","loc":["body"],"msg":"Field required","input":null}]}'
+@user_router.get('/user/stats/{username}', name='User Information')
+async def userRouterStatus(username: str, userid: str):
+    
+        try:
+            if username == '':
+                returnToken = json.loads(DBFunction(functionName='check_userpoint',
+                                                    arguments=[userid], 
+                                                    instance=StartDBInstance(creds=loginArray))[0])
+            else:
+                returnToken = json.loads(DBFunction(functionName='check_userpoint',
+                                                    arguments=[username], 
+                                                    instance=StartDBInstance(creds=loginArray))[0])
+            return{"SN":returnToken['SN'],
+                   "DAT":returnToken['DAT'],
+                   "HND":returnToken['HND'],
+                   "TOK":returnToken['TOK'],
+                   "RES":returnToken['RES'],
+                   "STD":returnToken['STD'],
+                   "LTD":returnToken['LTD']}
+        except:
+            return{"SN":'None',
+                   "DAT":'None',
+                   "HND":0,
+                   "TOK":"None",
+                   "RES":'ERR',
+                   "STD":500}
+        
+
+
 
 @user_router.get('/test.users', name='User Debug Endpoint', tags=['Diagnostics'])
 async def userRouterLogout():
